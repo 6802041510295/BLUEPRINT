@@ -1,6 +1,6 @@
 export const SERVICE_UUID = 'aee04821-1973-4e1f-a590-e84b10d580e7';
 export const CHAR_UUID = 'cde07b1a-889b-44b7-a99f-c888dddac729';
-export const DEFAULT_NAMES = ['chayanis nusati', 'suwimol tongkam'] as const;
+export const DEFAULT_NAME = 'chayanis nusati';
 export type Mode = 'live' | 'demo';
 export type Peripheral = { id: string; name: string; rssi: number | null; target?: boolean };
 export type Connection = Peripheral & { mtu: number; canWriteResponse: boolean };
@@ -20,9 +20,9 @@ export type Snapshot = {
   device: Connection | null; initial: Reading | null; sent: Reading | null; result: Reading | null;
   error: string | null; logs: Entry[];
 };
-export function makePayload(name: string, buddy: string) {
-  if (!name.trim() || !buddy.trim()) throw new Error('กรอกชื่อทั้งสองคนให้ครบก่อนส่ง');
-  return `${name.trim()} & ${buddy.trim()}`;
+export function makePayload(name: string) {
+  if (!name.trim()) throw new Error('กรอกชื่อก่อนส่ง');
+  return name.trim();
 }
 export class LabSession {
   state: Snapshot;
@@ -102,10 +102,10 @@ export class LabSession {
       this.log('READ 01', value);
     });
   }
-  async writeNames(name: string, buddy: string) {
+  async writeName(name: string) {
     await this.run('Writing', async rev => {
       if (!this.state.device || !this.state.initial) throw new Error('อ่านค่าเริ่มต้นให้สำเร็จก่อนส่งชื่อ');
-      const value = makePayload(name, buddy);
+      const value = makePayload(name);
       // Clear previous success first: a failed retry must never look successful.
       this.patch({ sent: null, result: null });
       await this.port.write(value);
